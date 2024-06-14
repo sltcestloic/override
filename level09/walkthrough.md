@@ -5,7 +5,9 @@ En ouvrant l'exécutable sur un décompileur, on voit rapidement la fonction `se
 Aucun printf en vue, on commence donc par explorer l'option de l'overflow.
 
 Le programme nous propose de définir notre username et d'envoyer un message, `main` appelle `handle_msg` qui a un buffer `v1` d'une taille de `140`
+
 Derrière la déclaration de `v1`, on push 5 `int64` sur la stack, donc `40 bytes`.
+
 On a ensuite un int `v7` qui vaut `140`
 
 `set_username` est appelé avec notre buffer `v1` en argument, il va lire `128 bytes` de notre input dans un buffer de `140` caractères, donc pas d'overflow ici.
@@ -27,7 +29,7 @@ return strncpy((char *)a1, s, *(int *)(a1 + 180));
 
 Le 3ème argument de `strncpy` est le nombre de bytes qui vont etre copiés, ici, on utilise la valeur située à `a1 + 180`, donc `v7`. Hors on a noté précédemment qu'il était possible d'overflow le premier byte de `v7` et donc d'augmenter considérablement sa valeur.
 
-Ici, notre `strncpy` va copier notre input dans `a1` (`v1` de `handle_msg`) derrière `a1`, on sait qu'on a nos 4 `int64` donc `40 bytes`, et la déclaration de `v7` donc `4 bytes`, ce qui nous fait un total de `184 bytes` allouées.
+Ici, notre `strncpy` va copier notre input dans `a1` (`v1` de `handle_msg`)
 
 On doit donc utiliser `set_username` pour overflow la valeur de `v7`, puis utiliser `set_msg` pour écrire l'adresse de `secret_backdoor` en dehors de la memoire allouée.
 
